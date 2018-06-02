@@ -1,7 +1,7 @@
 getProducers();
 
-function checkLibertyBlock() {
-    document.querySelector("input[value=libertylion1]").checked = true
+function checkEosAmsterdam() {
+    document.querySelector("input[value=eosamsterdam]").checked = true
     updateSelectedBPs();
 }
 
@@ -25,7 +25,7 @@ function toggleKeyInput () {
             scatter.getIdentity().catch(err => {
                 if (err.type == "locked") {
                     var alert = `<div class="alert alert-danger" role="alert">
-                        Please refresh page after unlocking Scatter. 
+                        Please refresh page after unlocking Scatter.
                     </div>`
                     document.getElementById('alerts').innerHTML = alert;
                 }
@@ -62,7 +62,7 @@ function getEos() {
             broadcast: true,
             sign: true,
             chainId: "a628a5a6123d6ed60242560f23354c557f4a02826e223bb38aad79ddeb9afbca"
-        }        
+        }
         return scatter.eos(network, Eos.Testnet, config);
     }
     else {
@@ -85,7 +85,7 @@ function getProducers() {
         json: true,
         scope: "eosio",
         code: "eosio",
-        table: "producers", 
+        table: "producers",
         limit: 200
     }
     var tbody = document.querySelector("#block-producers tbody");
@@ -93,6 +93,12 @@ function getProducers() {
 
     return eos.getTableRows(params).then(resp => {
         var sorted = resp.rows.sort((a,b) => Number(a.total_votes) > Number(b.total_votes) ? -1:1);
+
+        // eos amsterdam always checked
+        var eosamsterdam = resp.rows.find((r) => r.owner == "eosamsterdam")
+            || {"owner": "eosamsterdam", "total_votes": 0};
+
+        sorted.unshift(eosamsterdam);
         sorted.map(prod => `<tr class="prod-row">
             <td><input type="checkbox" name="vote-prods" value="${prod.owner}"></td>
             <td>${prod.owner}</td>
@@ -103,6 +109,8 @@ function getProducers() {
         document.getElementsByName('vote-prods').forEach(e => {
             e.onclick = updateSelectedBPs;
         });
+
+        checkEosAmsterdam()
 
     });
 
@@ -164,7 +172,7 @@ function vote () {
         </div>`
         document.getElementById('alerts').innerHTML = alert;
         document.getElementById('private-key').value = "";
-        
+
         document.getElementById('vote').disabled = false;
     }).catch(err => {
         console.error(err);
@@ -176,7 +184,7 @@ function vote () {
             var message = `Error: Key does not match account. Click here to use a <a href="#" onclick="refreshKeys()">different identity</a>`;
         else if (err.message)
             var message = `Error: Transaction failed. ${err.message}`;
-        else 
+        else
             var message = `Error: Transaction failed. ${err.type}. Try refreshing page.`;
         var alert = `<div class="alert alert-danger" role="alert">
             ${message}
